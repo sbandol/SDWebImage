@@ -111,6 +111,12 @@ static SDWebImageManager *instance;
     NSURL *url = [info objectForKey:@"url"];
     id<SDWebImageManagerDelegate> delegate = [info objectForKey:@"delegate"];
 
+	//We need to download the image, so notify delegate to show activity indicator
+	if ([delegate respondsToSelector:@selector(showActivityIndicator)]) {
+		[delegate performSelector:@selector(showActivityIndicator)];
+	}
+	
+	
     // Share the same downloader for identical URLs so we don't download the same URL several times
     SDWebImageDownloader *downloader = [downloaderForURL objectForKey:url];
 
@@ -142,6 +148,11 @@ static SDWebImageManager *instance;
             {
                 [delegate performSelector:@selector(webImageManager:didFinishWithImage:) withObject:self withObject:image];
             }
+			
+			if ([delegate respondsToSelector:@selector(hideActivityIndicator)]) {
+				[delegate performSelector:@selector(hideActivityIndicator)];
+			}
+			
 
             [downloaders removeObjectAtIndex:idx];
             [delegates removeObjectAtIndex:idx];
@@ -166,6 +177,28 @@ static SDWebImageManager *instance;
     // Release the downloader
     [downloaderForURL removeObjectForKey:downloader.url];
     [downloader release];
+}
+
+
+- (void)imageDownloader:(SDWebImageDownloader *)downloader didFailWithError:(NSError *)error{
+	
+	
+	// Notify all the delegates with this downloader
+	for (NSInteger idx = [downloaders count] - 1; idx >= 0; idx--)
+	{
+		SDWebImageDownloader *aDownloader = [downloaders objectAtIndex:idx];
+		if (aDownloader == downloader)
+		{
+			id<SDWebImageManagerDelegate> delegate = [delegates objectAtIndex:idx];
+			
+			if ([delegate respondsToSelector:@selector(hideActivityIndicator)]) {
+				[delegate performSelector:@selector(hideActivityIndicator)];
+			}
+		}
+	}
+	
+	[failedURLs addObject:downloader.url];
+	
 }
 
 

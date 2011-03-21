@@ -41,4 +41,28 @@
     self.image = image;
 }
 
+
+-(void)hideActivityIndicator{
+	UIActivityIndicatorView *actInd = (UIActivityIndicatorView *)[self viewWithTag:999];
+	[actInd stopAnimating];
+}
+
+-(void)showActivityIndicator{
+	
+	UIActivityIndicatorView *actInd = (UIActivityIndicatorView*)[self viewWithTag:999] ;
+	
+	if (actInd == nil) {
+		actInd = [[UIActivityIndicatorView alloc] initWithActivityIndicatorStyle:UIActivityIndicatorViewStyleGray];
+		actInd.tag = 999;
+		actInd.center = CGPointMake(self.frame.size.width/2, self.frame.size.height/2);
+		actInd.hidesWhenStopped = YES;
+		[self addSubview:actInd];
+		[actInd release];
+		
+	}
+	[actInd startAnimating];
+	
+}
+
+
 @end
