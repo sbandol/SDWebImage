@@ -183,6 +183,8 @@ static SDWebImageManager *instance;
 - (void)imageDownloader:(SDWebImageDownloader *)downloader didFailWithError:(NSError *)error{
 	
 	
+	[downloader retain];
+	
 	// Notify all the delegates with this downloader
 	for (NSInteger idx = [downloaders count] - 1; idx >= 0; idx--)
 	{
@@ -191,13 +193,23 @@ static SDWebImageManager *instance;
 		{
 			id<SDWebImageManagerDelegate> delegate = [delegates objectAtIndex:idx];
 			
+			if ([delegate respondsToSelector:@selector(webImageManager:didFailWithError:)]){
+				[delegate performSelector:@selector(webImageManager:didFailWithError:) withObject:self withObject:error];
+			}
+			
 			if ([delegate respondsToSelector:@selector(hideActivityIndicator)]) {
 				[delegate performSelector:@selector(hideActivityIndicator)];
 			}
+			
+			[downloaders removeObjectAtIndex:idx];
+			
+			[delegates removeObjectAtIndex:idx];
 		}
 	}
 	
-	[failedURLs addObject:downloader.url];
+	[failedURLs addObject:downloader.url];	
+	[downloaderForURL removeObjectForKey:downloader.url];
+	[downloader release];
 	
 }
 
